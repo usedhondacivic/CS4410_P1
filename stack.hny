@@ -1,0 +1,30 @@
+import list 
+
+def Stack(l):
+    result = {.length: l,.contents: []}
+
+def push(s, c):
+    atomically await ((len s->contents) < s->length)
+    atomically:
+        s->contents = [c,] + s->contents
+
+def pop(s):
+    atomically await (s->contents != [])
+    atomically:
+        result = (s->contents) 0 
+        del (s->contents)[0]
+
+def validate(s):
+    atomically await (len s->contents == s->length)
+    atomically:
+        var open = 0
+        var closed = 0
+        var valid = True 
+        for i in s->contents:
+            if i == "(":
+                open += 1
+            if i == ")":
+                closed += 1
+            if closed > open:
+                valid = False
+        result = valid

@@ -1,0 +1,36 @@
+import stack
+
+const NPUSH_OPEN = 2
+const NPUSH_CLOSE = 1
+const NPOP = 1
+const MAX_SIZE = 2
+
+s = stack.Stack(MAX_SIZE)
+
+def push_test(self, char):
+    print("call push", self, char)
+    stack.push(?s, char)
+    print("done push", self, char)
+
+def pop_test(self):
+    print("call pop", self)
+    let v = stack.pop(?s):
+        print("done pop", self, v)
+
+def validate_test():
+    print("call validate")
+    if stack.validate(?s):
+        print("hooray :)")
+    else:
+        print("boo :(")
+    print("done validate")
+
+
+for i in {1..NPUSH_OPEN}:
+    spawn push_test(i, "(")
+for i in {1..NPUSH_CLOSE}:
+    spawn push_test(i, ")")
+for i in {1..NPOP}:
+    spawn pop_test(i)
+
+spawn validate_test()
