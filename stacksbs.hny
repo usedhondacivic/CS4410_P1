@@ -1,0 +1,90 @@
+from synch import BinSema, acquire, release
+
+import list 
+
+# s pointer = node 1 pointer
+# node (val, next node pointer)
+
+def Stack(l):
+    # returns empty stack
+    result = {
+        .length: l, 
+        .contents: [], 
+        .mutex: BinSema(False),
+        .num_in: 0,
+        .full_gate: { .sema: BinSema(True), .count: 0 },
+        .not_empty_gate: { .sema: BinSema(True), .count: 0 },
+        .not_full_gate: { .sema: BinSema(True), .count: 0 }
+    }
+
+def release_one(s):
+    if (s->num_in == 0) and (s->contents != []) and (s->not_empty_gate.count > 0):
+        release(?(s->not_empty_gate.sema))
+    elif (s->num_in == 0) and (len (s->contents) < s->length) and (s->not_full_gate.count > 0):
+        release(?(s->not_full_gate.sema))
+    elif (s->num_in == 0) and  (len (s->contents) == s->length) and (s->full_gate.count > 0):
+        release(?(s->full_gate.sema))
+    else:
+        release(?(s->mutex))
+
+def push_acquire(s):
+    acquire(?(s->mutex))
+    if not (s->num_in == 0) or not (len (s->contents) < s->length):
+        s->not_full_gate.count += 1; release_one(s)
+        acquire(?(s->not_full_gate.sema)); s->not_full_gate.count -= 1
+    s->num_in += 1
+    release_one(s)
+
+def push_release(s):
+    acquire(?(s->mutex)); s->num_in -= 1; release_one(s)
+
+def push(s, c):
+    push_acquire(s)
+    csPush: assert countLabel(csPush) == 1
+    s->contents = [c,] + s->contents
+    push_release(s)
+
+def pop_acquire(s):
+    acquire(?(s->mutex))
+    if not (s->num_in == 0) or not (s->contents != []):
+        s->not_empty_gate.count += 1; release_one(s)
+        acquire(?(s->not_empty_gate.sema)); s->not_empty_gate.count -= 1
+    s->num_in += 1
+    release_one(s)
+
+def pop_release(s):
+    acquire(?(s->mutex)); s->num_in -= 1; release_one(s)
+
+def pop(s):
+    pop_acquire(s)
+    csPop: assert countLabel(csPop) == 1
+    result = (s->contents) 0 
+    del (s->contents)[0]
+    pop_release(s)
+
+def validate_acquire(s):
+    acquire(?(s->mutex))
+    if not (s->num_in == 0) or  not (s->contents != []):
+        s->full_gate.count += 1; release_one(s)
+        acquire(?(s->full_gate.sema)); s->full_gate.count -= 1
+    s->num_in += 1
+    release_one(s)
+
+def validate_release(s):
+    acquire(?(s->mutex)); s->num_in -= 1; release_one(s)
+
+def validate(s):
+    validate_acquire(s)
+    csVal: assert countLabel(csVal) == 1
+    var open = 0
+    var closed = 0
+    var valid = True 
+    for i in s->contents:
+        if i == "(":
+            open += 1
+        if i == ")":
+            closed += 1
+        if closed > open:
+            valid = False
+    result = valid
+    validate_release(s);
