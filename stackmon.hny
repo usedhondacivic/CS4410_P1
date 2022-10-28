@@ -22,7 +22,7 @@ def Stack(l):
 
 def push_acquire(s):
     acquire(?(s->mutex))
-    while (s->num_pop > 0) or (s->num_val > 0) or (len(s->contents) == s->length):
+    while (s->num_pop > 0) or (s->num_val > 0) or (s->num_push > 0) or (len(s->contents) == s->length):
         wait(?s->push_con, ?s->mutex)
     s->num_push += 1
     release(?(s->mutex))
@@ -31,8 +31,9 @@ def push_release(s):
     acquire(?(s->mutex))
     s->num_push -= 1
     if s->num_push == 0:
-        notify(?s->pop_con)
-        notify(?s->val_con)
+        notifyAll(?s->pop_con)
+        notifyAll(?s->val_con)
+        notifyAll(?s->push_con)
     release(?(s->mutex))
 
 def push(s, c):
@@ -44,7 +45,7 @@ def push(s, c):
 
 def pop_acquire(s):
     acquire(?(s->mutex))
-    while (s->num_push > 0) or (s->num_val > 0) or (s->contents == []):
+    while (s->num_pop > 0) or (s->num_val > 0) or (s->num_push > 0) or (s->contents == []):
         wait(?s->pop_con, ?s->mutex)
     s->num_pop += 1
     release(?(s->mutex))
@@ -53,8 +54,9 @@ def pop_release(s):
     acquire(?(s->mutex))
     s->num_pop -= 1
     if s->num_pop == 0:
-        notify(?s->push_con)
-        notify(?s->val_con)
+        notifyAll(?s->pop_con)
+        notifyAll(?s->val_con)
+        notifyAll(?s->push_con)
     release(?(s->mutex))
 
 
@@ -67,7 +69,7 @@ def pop(s):
 
 def validate_acquire(s):
     acquire(?(s->mutex))
-    while (s->num_pop > 0) or (s->num_push > 0) or (len(s->contents) != s->length):
+    while (s->num_pop > 0) or (s->num_val > 0) or (s->num_push > 0) or (len(s->contents) != s->length):
         wait(?s->val_con, ?s->mutex)
     s->num_val += 1
     release(?(s->mutex))
@@ -75,10 +77,11 @@ def validate_acquire(s):
     
 def validate_release(s):
     acquire(?(s->mutex))
-    s->num_pop -= 1
-    if s->num_pop == 0:
-        notify(?s->push_con)
-        notify(?s->pop_con)
+    s->num_val -= 1
+    if s->num_val == 0:
+        notifyAll(?s->pop_con)
+        notifyAll(?s->val_con)
+        notifyAll(?s->push_con)
     release(?(s->mutex))
 
 
