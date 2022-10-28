@@ -64,7 +64,7 @@ def pop(s):
 
 def validate_acquire(s):
     acquire(?(s->mutex))
-    if not (s->num_in == 0) or  not (s->contents != []):
+    if not (s->num_in == 0) or len(s->contents) != s->length:
         s->full_gate.count += 1; release_one(s)
         acquire(?(s->full_gate.sema)); s->full_gate.count -= 1
     s->num_in += 1
