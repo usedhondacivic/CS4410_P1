@@ -84,6 +84,8 @@ def validate(s):
             open += 1
         if i == ")":
             closed += 1
+        if closed > open:
+            valid = False
     if closed != open:
         valid = False
     result = valid
